@@ -93,7 +93,7 @@ def load_data(task="acl", use_gpu=False):
     train_dataset = Dataset(train_dir, task, use_gpu)
     valid_dataset = Dataset(valid_dir, task, use_gpu)
 
-    train_loader = data.DataLoader(train_dataset, batch_size=1, num_workers=8, shuffle=True)
-    valid_loader = data.DataLoader(valid_dataset, batch_size=1, num_workers=8, shuffle=False)
+    train_loader = data.DataLoader(train_dataset, batch_size=1, num_workers=1, shuffle=True)
+    valid_loader = data.DataLoader(valid_dataset, batch_size=1, num_workers=1, shuffle=False)
 
     return train_loader, valid_loader

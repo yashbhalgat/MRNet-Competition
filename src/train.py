@@ -10,12 +10,12 @@ from sklearn import metrics
 
 from evaluate import run_model
 from loader import load_data
-from model import MRNet
+from model import TripleMRNet
 
 def train(rundir, task, epochs, learning_rate, use_gpu):
     train_loader, valid_loader = load_data(task, use_gpu)
     
-    model = MRNet()
+    model = TripleMRNet()
     
     if use_gpu:
         model = model.cuda()

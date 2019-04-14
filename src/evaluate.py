@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 import torch
+from tqdm import tqdm
 
 import pdb
 
@@ -32,18 +33,18 @@ def run_model(model, loader, train=False, optimizer=None):
     total_loss = 0.
     num_batches = 0
 
-    for batch in loader:
+    for batch in tqdm(loader):
         if train:
             optimizer.zero_grad()
 
-        vol, _, _, label = batch
+        vol_axial, vol_sagit, vol_coron, label = batch
         if loader.dataset.use_gpu:
-            vol = vol.cuda()
+            vol_axial, vol_sagit, vol_coron = vol_axial.cuda(), vol_sagit.cuda(), vol_coron.cuda()
             label = label.cuda()
-        vol = Variable(vol)
+        vol_axial, vol_sagit, vol_coron = Variable(vol_axial), Variable(vol_sagit), Variable(vol_coron)
         label = Variable(label)
 
-        logit = model.forward(vol)
+        logit = model.forward(vol_axial, vol_sagit, vol_coron)
 
         loss = loader.dataset.weighted_loss(logit, label)
         total_loss += loss.item()
