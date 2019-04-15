@@ -20,24 +20,52 @@ class MRNet(nn.Module):
         return x
 
 class TripleMRNet(nn.Module):
-    def __init__(self):
+    def __init__(self, backbone="alexnet"):
         super().__init__()
-        self.axial_net = models.alexnet(pretrained=True)
-        self.sagit_net = models.alexnet(pretrained=True)
-        self.coron_net = models.alexnet(pretrained=True)
+        self.backbone = backbone
+        if self.backbone == "resnet18":
+            resnet = models.resnet18(pretrained=True)
+            modules = list(resnet.children())[:-1]
+            self.axial_net = nn.Sequential(*modules)
+        elif self.backbone == "alexnet":
+            self.axial_net = models.alexnet(pretrained=True)
+
+        if self.backbone == "resnet18":
+            resnet = models.resnet18(pretrained=True)
+            modules = list(resnet.children())[:-1]
+            self.sagit_net = nn.Sequential(*modules)
+        elif self.backbone == "alexnet":
+            self.sagit_net = models.alexnet(pretrained=True)
+        
+        if self.backbone == "resnet18":
+            resnet = models.resnet18(pretrained=True)
+            modules = list(resnet.children())[:-1]
+            self.coron_net = nn.Sequential(*modules)
+        elif self.backbone == "alexnet":
+            self.coron_net = models.alexnet(pretrained=True)
+
         self.gap_axial = nn.AdaptiveAvgPool2d(1)
         self.gap_sagit = nn.AdaptiveAvgPool2d(1)
         self.gap_coron = nn.AdaptiveAvgPool2d(1)
-        self.classifier = nn.Linear(3*256, 1)
+       
+        if self.backbone == "resnet18":
+            self.classifier = nn.Linear(3*512, 1)
+        elif self.backbone == "alexnet":
+            self.classifier = nn.Linear(3*256, 1)
 
     def forward(self, vol_axial, vol_sagit, vol_coron):
         vol_axial = torch.squeeze(vol_axial, dim=0)
         vol_sagit = torch.squeeze(vol_sagit, dim=0)
         vol_coron = torch.squeeze(vol_coron, dim=0)
        
-        vol_axial = self.axial_net.features(vol_axial)
-        vol_sagit = self.sagit_net.features(vol_sagit)
-        vol_coron = self.coron_net.features(vol_coron)
+        if self.backbone == "resnet18":
+            vol_axial = self.axial_net(vol_axial)
+            vol_sagit = self.sagit_net(vol_sagit)
+            vol_coron = self.coron_net(vol_coron)
+        elif self.backbone == "alexnet":
+            vol_axial = self.axial_net.features(vol_axial)
+            vol_sagit = self.sagit_net.features(vol_sagit)
+            vol_coron = self.coron_net.features(vol_coron)
 
         vol_axial = self.gap_axial(vol_axial).view(vol_axial.size(0), -1)
         x = torch.max(vol_axial, 0, keepdim=True)[0]
