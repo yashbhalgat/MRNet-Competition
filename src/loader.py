@@ -21,6 +21,7 @@ class Dataset(data.Dataset):
 
         label_dict = {}
         self.paths = []
+        abonormal_label_dict = {}
         
         if datadir[-1]=="/":
             datadir = datadir[:-1]
@@ -32,11 +33,18 @@ class Dataset(data.Dataset):
             label = line[1]
             label_dict[filename] = int(label)
 
+        for i, line in enumerate(open(datadir+'-'+"abnormal"+'.csv').readlines()):
+            line = line.strip().split(',')
+            filename = line[0]
+            label = line[1]
+            abnormal_label_dict[filename] = int(label)
+
         for filename in os.listdir(os.path.join(datadir, "axial")):
             if filename.endswith(".npy"):
                 self.paths.append(filename)
         
         self.labels = [label_dict[path.split(".")[0]] for path in self.paths]
+        self.abnormal_labels = [abnormal_label_dict[path.split(".")[0]] for path in self.paths]
 
         neg_weight = np.mean(self.labels)
         self.weights = [neg_weight, 1 - neg_weight]
@@ -81,7 +89,7 @@ class Dataset(data.Dataset):
 
         label_tensor = torch.FloatTensor([self.labels[index]])
 
-        return vol_axial_tensor, vol_sagit_tensor, vol_coron_tensor, label_tensor
+        return vol_axial_tensor, vol_sagit_tensor, vol_coron_tensor, label_tensor, self.abnormal_labels[index]
 
     def __len__(self):
         return len(self.paths)

@@ -21,23 +21,33 @@ def get_parser():
     parser.add_argument('--gpu', action='store_true')
     return parser
 
-def run_model(model, loader, train=False, optimizer=None):
+def run_model(model, loader, train=False, optimizer=None,
+        abnormal_model_path=None):
     preds = []
     labels = []
 
     if train:
         model.train()
     else:
+        if abnormal_model_path:
+            abnormal_model = TripleMRNet(backbone=model.backbone)
+            state_dict = torch.load(abnormal_model_path, map_location=(None if use_gpu else 'cpu'))
+            abnormal_model.load_state_dict(state_dict)
+            abnormal_model.cuda()
+            abnormal_model.eval()
         model.eval()
 
     total_loss = 0.
     num_batches = 0
 
     for batch in tqdm(loader):
+        vol_axial, vol_sagit, vol_coron, label, abnormal = batch
+        
         if train:
+            if abnormal_model_path and not abnormal:
+                continue
             optimizer.zero_grad()
 
-        vol_axial, vol_sagit, vol_coron, label = batch
         if loader.dataset.use_gpu:
             vol_axial, vol_sagit, vol_coron = vol_axial.cuda(), vol_sagit.cuda(), vol_coron.cuda()
             label = label.cuda()
@@ -50,7 +60,18 @@ def run_model(model, loader, train=False, optimizer=None):
         total_loss += loss.item()
 
         pred = torch.sigmoid(logit)
+
         pred_npy = pred.data.cpu().numpy()[0][0]
+
+        if abnormal_model_path and not train:
+            abnormal_logit = abnormal_model.forward(
+                    vol_axial,
+                    vol_sagit,
+                    vol_coron)
+            abnormal_pred = torch.sigmoid(abnormal_logit)
+            abnormal_pred_npy = abnormal_pred.data.cpu().numpy()[0][0]
+            pred_npy = pred_npy * abnormal_pred_npy
+
         label_npy = label.data.cpu().numpy()[0][0]
 
         preds.append(pred_npy)
@@ -65,6 +86,9 @@ def run_model(model, loader, train=False, optimizer=None):
     
     fpr, tpr, threshold = metrics.roc_curve(labels, preds)
     auc = metrics.auc(fpr, tpr)
+
+    if abnormal_model_path and not train:
+        del abnormal_model
 
     return avg_loss, auc, preds, labels
 

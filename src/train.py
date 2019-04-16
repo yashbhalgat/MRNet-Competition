@@ -12,7 +12,8 @@ from evaluate import run_model
 from loader import load_data
 from model import TripleMRNet
 
-def train(rundir, task, backbone, epochs, learning_rate, use_gpu):
+def train(rundir, task, backbone, epochs, learning_rate, use_gpu,
+        abnormal_model_path=None):
     train_loader, valid_loader = load_data(task, use_gpu)
     
     model = TripleMRNet(backbone=backbone)
@@ -31,11 +32,16 @@ def train(rundir, task, backbone, epochs, learning_rate, use_gpu):
         change = datetime.now() - start_time
         print('starting epoch {}. time passed: {}'.format(epoch+1, str(change)))
         
-        train_loss, train_auc, _, _ = run_model(model, train_loader, train=True, optimizer=optimizer)
+        train_loss, train_auc, _, _ = run_model(
+                model, train_loader, train=True, optimizer=optimizer,
+                abnormal_model_path=abnormal_model_path)
+
         print(f'train loss: {train_loss:0.4f}')
         print(f'train AUC: {train_auc:0.4f}')
 
-        val_loss, val_auc, _, _ = run_model(model, valid_loader)
+        val_loss, val_auc, _, _ = run_model(model, valid_loader,
+                abnormal_model_path=abnormal_model_path)
+        
         print(f'valid loss: {val_loss:0.4f}')
         print(f'valid AUC: {val_auc:0.4f}')
 
@@ -60,6 +66,7 @@ def get_parser():
     parser.add_argument('--max_patience', default=5, type=int)
     parser.add_argument('--factor', default=0.3, type=float)
     parser.add_argument('--backbone', default="alexnet", type=str)
+    parser.add_argument('--abnormal_model', default=None, type=str)
     return parser
 
 if __name__ == '__main__':
@@ -70,9 +77,13 @@ if __name__ == '__main__':
     if args.gpu:
         torch.cuda.manual_seed_all(args.seed)
 
+    if args.task != "abnormal":
+        if args.abnormal_model is None:
+            raise ValueError("Enter abnormal model path for `acl` or `meniscus` task")
+
     os.makedirs(args.rundir, exist_ok=True)
     
     with open(Path(args.rundir) / 'args.json', 'w') as out:
         json.dump(vars(args), out, indent=4)
 
-    train(args.rundir, args.task, args.backbone, args.epochs, args.learning_rate, args.gpu)
+    train(args.rundir, args.task, args.backbone, args.epochs, args.learning_rate, args.gpu, abnormal_model_path=args.abnormal_model)
