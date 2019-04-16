@@ -21,7 +21,7 @@ class Dataset(data.Dataset):
 
         label_dict = {}
         self.paths = []
-        abonormal_label_dict = {}
+        abnormal_label_dict = {}
         
         if datadir[-1]=="/":
             datadir = datadir[:-1]
