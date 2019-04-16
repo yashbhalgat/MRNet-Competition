@@ -20,13 +20,15 @@ class MRNet(nn.Module):
         return x
 
 class TripleMRNet(nn.Module):
-    def __init__(self, backbone="alexnet"):
+    def __init__(self, backbone="resnet18"):
         super().__init__()
         self.backbone = backbone
         if self.backbone == "resnet18":
             resnet = models.resnet18(pretrained=True)
             modules = list(resnet.children())[:-1]
             self.axial_net = nn.Sequential(*modules)
+            for param in self.axial_net.parameters():
+                param.requires_grad = False
         elif self.backbone == "alexnet":
             self.axial_net = models.alexnet(pretrained=True)
 
@@ -34,6 +36,8 @@ class TripleMRNet(nn.Module):
             resnet = models.resnet18(pretrained=True)
             modules = list(resnet.children())[:-1]
             self.sagit_net = nn.Sequential(*modules)
+            for param in self.sagit_net.parameters():
+                param.requires_grad = False
         elif self.backbone == "alexnet":
             self.sagit_net = models.alexnet(pretrained=True)
         
@@ -41,6 +45,8 @@ class TripleMRNet(nn.Module):
             resnet = models.resnet18(pretrained=True)
             modules = list(resnet.children())[:-1]
             self.coron_net = nn.Sequential(*modules)
+            for param in self.coron_net.parameters():
+                param.requires_grad = False
         elif self.backbone == "alexnet":
             self.coron_net = models.alexnet(pretrained=True)
 

@@ -12,10 +12,10 @@ from evaluate import run_model
 from loader import load_data
 from model import TripleMRNet
 
-def train(rundir, task, epochs, learning_rate, use_gpu):
+def train(rundir, task, backbone, epochs, learning_rate, use_gpu):
     train_loader, valid_loader = load_data(task, use_gpu)
     
-    model = TripleMRNet()
+    model = TripleMRNet(backbone=backbone)
     
     if use_gpu:
         model = model.cuda()
@@ -59,6 +59,7 @@ def get_parser():
     parser.add_argument('--epochs', default=50, type=int)
     parser.add_argument('--max_patience', default=5, type=int)
     parser.add_argument('--factor', default=0.3, type=float)
+    parser.add_argument('--backbone', default="alexnet", type=str)
     return parser
 
 if __name__ == '__main__':
@@ -74,4 +75,4 @@ if __name__ == '__main__':
     with open(Path(args.rundir) / 'args.json', 'w') as out:
         json.dump(vars(args), out, indent=4)
 
-    train(args.rundir, args.task, args.epochs, args.learning_rate, args.gpu)
+    train(args.rundir, args.task, args.backbone, args.epochs, args.learning_rate, args.gpu)
