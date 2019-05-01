@@ -46,7 +46,12 @@ class Dataset(data.Dataset):
         self.labels = [label_dict[path.split(".")[0]] for path in self.paths]
         self.abnormal_labels = [abnormal_label_dict[path.split(".")[0]] for path in self.paths]
 
-        neg_weight = np.mean(self.labels)
+        if tear_type != "abnormal":
+            temp_labels = [self.labels[i] for i in range(len(self.labels)) if self.abnormal_labels[i]==1]
+            neg_weight = np.mean(temp_labels)
+        else:
+            neg_weight = np.mean(self.labels)
+        
         self.weights = [neg_weight, 1 - neg_weight]
 
     def weighted_loss(self, prediction, target):

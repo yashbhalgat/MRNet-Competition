@@ -11,7 +11,7 @@ from sklearn import metrics
 from torch.autograd import Variable
 
 from loader import load_data
-from model import MRNet
+from model import TripleMRNet
 
 def get_parser():
     parser = argparse.ArgumentParser()
@@ -31,7 +31,7 @@ def run_model(model, loader, train=False, optimizer=None,
     else:
         if abnormal_model_path:
             abnormal_model = TripleMRNet(backbone=model.backbone)
-            state_dict = torch.load(abnormal_model_path, map_location=(None if use_gpu else 'cpu'))
+            state_dict = torch.load(abnormal_model_path)
             abnormal_model.load_state_dict(state_dict)
             abnormal_model.cuda()
             abnormal_model.eval()

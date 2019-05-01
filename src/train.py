@@ -17,7 +17,23 @@ def train(rundir, task, backbone, epochs, learning_rate, use_gpu,
     train_loader, valid_loader = load_data(task, use_gpu)
     
     model = TripleMRNet(backbone=backbone)
-    
+    for dirpath, dirnames, files in os.walk(args.rundir):
+        if not files:
+            break
+        max_epoch = 0
+        model_path = None
+        for fname in files:
+            if fname.endswith(".json"):
+                continue
+            ep = int(fname[27:])
+            if ep >= max_epoch:
+                max_epoch = ep
+                model_path = os.path.join(dirpath, fname)
+        
+        if model_path:
+            state_dict = torch.load(model_path, map_location=(None if use_gpu else 'cpu'))
+            model.load_state_dict(state_dict)
+
     if use_gpu:
         model = model.cuda()
 
@@ -28,7 +44,9 @@ def train(rundir, task, backbone, epochs, learning_rate, use_gpu,
 
     start_time = datetime.now()
 
-    for epoch in range(epochs):
+    epoch = 0
+    if max_epoch: epoch += max_epoch
+    while epoch < epochs:
         change = datetime.now() - start_time
         print('starting epoch {}. time passed: {}'.format(epoch+1, str(change)))
         
@@ -53,6 +71,8 @@ def train(rundir, task, backbone, epochs, learning_rate, use_gpu,
             file_name = f'val{val_loss:0.4f}_train{train_loss:0.4f}_epoch{epoch+1}'
             save_path = Path(rundir) / file_name
             torch.save(model.state_dict(), save_path)
+
+        epoch += 1
 
 def get_parser():
     parser = argparse.ArgumentParser()
