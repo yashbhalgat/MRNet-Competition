@@ -94,46 +94,58 @@ if __name__=="__main__":
             coron_path = fpath.strip()
         if i%3==2:
             views.append(get_study(axial_path, sagit_path, coron_path))
-    
+
+
     # Loading all models
     abnormal_model_path = "abnormal_triple_alex/val0.1071_train0.0868_epoch8"
     acl_model_path = "acl_triple_alex/val0.1310_train0.0504_epoch30"
     meniscal_model_path = "meniscal_triple_alex/val0.2645_train0.1142_epoch22"
 
+
+    # Getting predictions
+    abnormality = []
+    acl_tear = []
+    meniscal_tear = []
+    
     abnormal_model = TripleMRNet(backbone="alexnet")
     state_dict = torch.load(abnormal_model_path)
     abnormal_model.load_state_dict(state_dict)
     abnormal_model.cuda()
     abnormal_model.eval()
-    
+    for study in views:
+        abnormality.append(get_prediction(
+                abnormal_model,
+                study,
+                abnormality_prior=None))
+    del abnormal_model
+
     acl_model = TripleMRNet(backbone="alexnet")
     state_dict = torch.load(acl_model_path)
     acl_model.load_state_dict(state_dict)
     acl_model.cuda()
     acl_model.eval()
+    for idx,study in enumerate(views):
+        acl_tear.append(get_prediction(
+                acl_model,
+                study,
+                abnormality_prior=abnormality[idx]))
+    del acl_model
 
     meniscal_model = TripleMRNet(backbone="alexnet")
     state_dict = torch.load(meniscal_model_path)
     meniscal_model.load_state_dict(state_dict)
     meniscal_model.cuda()
     meniscal_model.eval()
+    for idx,study in enumerate(views):
+        meniscal_tear.append(get_prediction(
+                meniscal_model,
+                study,
+                abnormality_prior=abnormality[idx]))
+    del meniscal_model
+    
 
-    # Getting predictions
-    with open(preds_csv_path, "w") as csv_file:
-        for study in views:
-            abnormality = get_prediction(
-                    abnormal_model,
-                    study,
-                    abnormality_prior=None)
-            acl_tear = get_prediction(
-                    acl_model,
-                    study,
-                    abnormality_prior=abnormality)
-            meniscal_tear = get_prediction(
-                    meniscal_model,
-                    study,
-                    abnormality_prior=abnormality)
-            
+    with open(preds_csv_path, "w") as csv_file:        
+        for i in range(len(abnormality)):
             csv_file.write(",".join(
-                [str(abnormality), str(acl_tear), str(meniscal_tear)]))
+                [str(abnormality[i]), str(acl_tear[i]), str(meniscal_tear[i])]))
             csv_file.write("\n")
