@@ -20,35 +20,35 @@ class MRNet(nn.Module):
         return x
 
 class TripleMRNet(nn.Module):
-    def __init__(self, backbone="resnet18"):
+    def __init__(self, backbone="resnet18", training=True):
         super().__init__()
         self.backbone = backbone
         if self.backbone == "resnet18":
-            resnet = models.resnet18(pretrained=True)
+            resnet = models.resnet18(pretrained=training)
             modules = list(resnet.children())[:-1]
             self.axial_net = nn.Sequential(*modules)
             for param in self.axial_net.parameters():
                 param.requires_grad = False
         elif self.backbone == "alexnet":
-            self.axial_net = models.alexnet(pretrained=True)
+            self.axial_net = models.alexnet(pretrained=training)
 
         if self.backbone == "resnet18":
-            resnet = models.resnet18(pretrained=True)
+            resnet = models.resnet18(pretrained=training)
             modules = list(resnet.children())[:-1]
             self.sagit_net = nn.Sequential(*modules)
             for param in self.sagit_net.parameters():
                 param.requires_grad = False
         elif self.backbone == "alexnet":
-            self.sagit_net = models.alexnet(pretrained=True)
+            self.sagit_net = models.alexnet(pretrained=training)
         
         if self.backbone == "resnet18":
-            resnet = models.resnet18(pretrained=True)
+            resnet = models.resnet18(pretrained=training)
             modules = list(resnet.children())[:-1]
             self.coron_net = nn.Sequential(*modules)
             for param in self.coron_net.parameters():
                 param.requires_grad = False
         elif self.backbone == "alexnet":
-            self.coron_net = models.alexnet(pretrained=True)
+            self.coron_net = models.alexnet(pretrained=training)
 
         self.gap_axial = nn.AdaptiveAvgPool2d(1)
         self.gap_sagit = nn.AdaptiveAvgPool2d(1)

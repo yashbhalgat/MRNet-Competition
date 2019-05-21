@@ -107,7 +107,7 @@ if __name__=="__main__":
     acl_tear = []
     meniscal_tear = []
     
-    abnormal_model = TripleMRNet(backbone="alexnet")
+    abnormal_model = TripleMRNet(backbone="alexnet", training=False)
     state_dict = torch.load(abnormal_model_path)
     abnormal_model.load_state_dict(state_dict)
     abnormal_model.cuda()
@@ -119,7 +119,7 @@ if __name__=="__main__":
                 abnormality_prior=None))
     del abnormal_model
 
-    acl_model = TripleMRNet(backbone="alexnet")
+    acl_model = TripleMRNet(backbone="alexnet", training=False)
     state_dict = torch.load(acl_model_path)
     acl_model.load_state_dict(state_dict)
     acl_model.cuda()
@@ -131,7 +131,7 @@ if __name__=="__main__":
                 abnormality_prior=abnormality[idx]))
     del acl_model
 
-    meniscal_model = TripleMRNet(backbone="alexnet")
+    meniscal_model = TripleMRNet(backbone="alexnet", training=False)
     state_dict = torch.load(meniscal_model_path)
     meniscal_model.load_state_dict(state_dict)
     meniscal_model.cuda()
