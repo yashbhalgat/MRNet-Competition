@@ -97,9 +97,9 @@ if __name__=="__main__":
 
 
     # Loading all models
-    abnormal_model_path = "abnormal_triple_alex/val0.1071_train0.0868_epoch8"
-    acl_model_path = "acl_triple_alex/val0.1310_train0.0504_epoch30"
-    meniscal_model_path = "meniscal_triple_alex/val0.2645_train0.1142_epoch22"
+    abnormal_model_path = "src/abnormal_triple_alex/val0.1071_train0.0868_epoch8"
+    acl_model_path = "src/acl_triple_alex/val0.1310_train0.0504_epoch30"
+    meniscal_model_path = "src/meniscal_triple_alex/val0.2645_train0.1142_epoch22"
 
 
     # Getting predictions
