@@ -4,4 +4,4 @@
 **Author**: Yash Bhalgat, Independent Researcher, Ann Arbor, MI
 
 ### Credits:
-This codebase is inspired from [MRNet-Baseline](https://github.com/aneergaard/MRNet)
+This codebase has evolved from [MRNet-Baseline](https://github.com/aneergaard/MRNet)
